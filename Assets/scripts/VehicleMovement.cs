@@ -1,19 +1,19 @@
 ﻿using UnityEngine;
 
-public class VehicleMovement : MonoBehaviour {
-
+public class VehicleMovement : MonoBehaviour
+{
     public float speed;
 
     [Header("Drive Settings")]
     public float driveForce = 17f;
     public float slowingVelFactor = .99f;
-    public float brakingVelFactor = .99f;
+    public float brakingVelFactor = .95f;
     public float angleOfRoll = 30f;
 
     [Header("Hover Settings")]
-    public float hoverHeight = 1.5f;
-    public float maxGroundDist = 5f;
-    public float hoverForce = 300f;
+    public float hoverHeight = 2.5f;
+    public float maxGroundDist = 6f;
+    public float hoverForce = 400f;
     public LayerMask whatIsGround;
     public PIDController hoverPID;
 
@@ -28,21 +28,24 @@ public class VehicleMovement : MonoBehaviour {
     float drag;
     public bool isOnGround;
 
-    void Start () {
+    void Start ()
+    {
         rigidBody = GetComponent<Rigidbody>();
         input = GetComponent<PlayerInput> ();
 
         drag = driveForce / terminalVelocity;
     }
 
-    void FixedUpdate () {
+    void FixedUpdate ()
+    {
         speed = Vector3.Dot(rigidBody.velocity, transform.forward);
 
         CalculateHover();
         CalculatePropulsion();
     }
 
-    void CalculateHover () {
+    void CalculateHover ()
+    {
         Vector3 groundNormal;
 
         Ray ray = new Ray(transform.position, -transform.up);
@@ -78,14 +81,15 @@ public class VehicleMovement : MonoBehaviour {
         Vector3 projection = Vector3.ProjectOnPlane(transform.forward, groundNormal);
         Quaternion rotation = Quaternion.LookRotation(projection, groundNormal);
 
-        rigidBody.MoveRotation(Quaternion.Lerp(rigidBody.rotation, rotation, Time.deltaTime * 10f));
+        rigidBody.MoveRotation(Quaternion.Lerp(rigidBody.rotation, rotation, Time.deltaTime * 2f));
 
         float angle = angleOfRoll * -input.rudder;
         Quaternion bodyRotation = transform.rotation * Quaternion.Euler(0f, 0f, angle);
-        shipBody.rotation = Quaternion.Lerp(shipBody.rotation, bodyRotation, Time.deltaTime * 10f);
+        shipBody.rotation = Quaternion.Lerp(shipBody.rotation, bodyRotation, Time.deltaTime * 5f);
     }
 
-    void CalculatePropulsion () {
+    void CalculatePropulsion ()
+    {
         float rotationTorque = input.rudder - rigidBody.angularVelocity.y;
 
         rigidBody.AddRelativeTorque(0f, rotationTorque, 0f, ForceMode.VelocityChange);
@@ -108,9 +112,4 @@ public class VehicleMovement : MonoBehaviour {
         float propulsion = driveForce * input.thruster - drag * Mathf.Clamp(speed, 0f, terminalVelocity);
         rigidBody.AddForce(transform.forward * propulsion, ForceMode.Acceleration);
     }
-
-    // Update is called once per frame
-    void Update () {
-	
-	}
 }
