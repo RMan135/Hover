@@ -15,7 +15,7 @@ public class VehicleMovement : MonoBehaviour {
     public float maxGroundDist = 5f;
     public float hoverForce = 300f;
     public LayerMask whatIsGround;
-    //public PIDController hoverPID;
+    public PIDController hoverPID;
 
     [Header("Physics Settings")]
     public Transform shipBody;
@@ -26,7 +26,7 @@ public class VehicleMovement : MonoBehaviour {
     Rigidbody rigidBody;
     PlayerInput input;
     float drag;
-    bool isOnGround;
+    public bool isOnGround;
 
     void Start () {
         rigidBody = GetComponent<Rigidbody>();
@@ -47,15 +47,20 @@ public class VehicleMovement : MonoBehaviour {
 
         Ray ray = new Ray(transform.position, -transform.up);
 
-        RaycastHit hitInfo;
+        Debug.DrawRay(transform.position, -transform.up * maxGroundDist);
 
+        RaycastHit hitInfo;
+               
         isOnGround = Physics.Raycast(ray, out hitInfo, maxGroundDist, whatIsGround);
+
+        Debug.DrawRay(hitInfo.point, hitInfo.normal, Color.red);
+        Debug.Log("" + hitInfo.distance);
 
         if (isOnGround)
         {
             float height = hitInfo.distance;
             groundNormal = hitInfo.normal.normalized;
-            float forcePercent = maxGroundDist - height; // hoverPID.Seek(hoverHeight, height);
+            float forcePercent = hoverPID.Seek(hoverHeight, height);
 
             Vector3 force = groundNormal * hoverForce * forcePercent;
             Vector3 gravity = -groundNormal * hoverGravity * height;
